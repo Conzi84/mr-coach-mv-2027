@@ -1,3 +1,4 @@
+import {deepTopics,familyOf} from './depth.js';
 import {curriculum,topics,allTasks,trainingTasks,diagnosticTasks} from './content.js';
 export const STORAGE_KEY='mr-coach-mv-2027-v1';
 export const DAY=86400000;
@@ -46,7 +47,10 @@ export function topicStats(state,id,now=Date.now()){
  const evidence=latestMistake?independentTries.filter(a=>a.time>latestMistake.time):independentTries;
  const evidenceUnique=new Set(evidence.map(a=>a.taskId)),evidenceDays=new Set(evidence.map(a=>dateKey(a.time)));
  const evidenceTransfer=evidence.some(a=>trainingTasks.find(t=>t.id===a.taskId)?.transfer);
- const secure=evidenceUnique.size>=3 && evidenceDays.size>=2 && evidenceTransfer;
+ const substantive=evidence.filter(a=>!trainingTasks.find(t=>t.id===a.taskId)?.fields.some(f=>f.options));
+ const families=new Set(substantive.map(a=>familyOf(trainingTasks.find(t=>t.id===a.taskId)||{topic:id})));
+ const diverse=!deepTopics.includes(id)||families.size>=3;
+ const secure=evidenceUnique.size>=3 && evidenceDays.size>=2 && evidenceTransfer && diverse;
  const successes=evidence.length;
  const interval=successes>=5?21:successes>=3?7:2;
  const due=lastTested?lastTested.time+interval*DAY:null;
@@ -55,13 +59,13 @@ export function topicStats(state,id,now=Date.now()){
  else if(last?.outcome==='unknown' && !tested.length)status='Üben';
  else if(tested.length)status=secure?'Vorläufig gefestigt':'Üben';
  if(due && now>=due)status='Wiederholung fällig';
- return {id,status,tries:tries.length,tested:tested.length,independent:independentTries.length,unique:unique.size,days:days.size,transfer,secure,evidenceUnique:evidenceUnique.size,evidenceTransfer,due,last,lastTested};
+ return {id,status,tries:tries.length,tested:tested.length,independent:independentTries.length,unique:unique.size,days:days.size,transfer,secure,evidenceUnique:evidenceUnique.size,evidenceTransfer,families:families.size,diverse,due,last,lastTested};
 }
 export function recommend(state,now=Date.now()){
  const stats=topics.map(t=>({...t,stats:topicStats(state,t.id,now)}));
  const due=stats.filter(t=>t.stats.status==='Wiederholung fällig').sort((a,b)=>a.stats.due-b.stats.due);
  if(due.length)return {topic:due[0],reason:'Eine kurze Wiederholung ist fällig.'};
- const needsPractice=t=>!t.stats.secure && t.stats.status!=='Noch nicht gelernt' && !(t.stats.evidenceUnique>=3 && t.stats.evidenceTransfer);
+ const needsPractice=t=>!t.stats.secure && t.stats.status!=='Noch nicht gelernt' && !(t.stats.evidenceUnique>=3 && t.stats.evidenceTransfer && t.stats.diverse);
  const seen=stats.find(t=>t.stats.status==='Üben' && needsPractice(t));
  if(seen){const missing=seen.prerequisites.map(id=>stats.find(t=>t.id===id)).find(t=>t && needsPractice(t));if(missing)return {topic:missing,reason:`Diese Grundlage hilft dir bei „${seen.title}“.`};return {topic:seen,reason:'Hier kannst du den nächsten Schritt machen.'};}
  const next=stats.find(needsPractice);
@@ -69,8 +73,8 @@ export function recommend(state,now=Date.now()){
  const waiting=[...stats].filter(t=>t.stats.due).sort((a,b)=>a.stats.due-b.stats.due)[0]??stats[0];
  return {topic:waiting,reason:'Die bearbeiteten Themen warten auf spätere Kontrollen. Du kannst freiwillig weiterüben.'};
 }
-export function selectTasks(state,id,count=4){
- const pool=trainingTasks.filter(t=>t.topic===id);
+export function selectTasks(state,id,count=4,stage=null){
+ const pool=trainingTasks.filter(t=>t.topic===id && (!stage||(t.stage||'anwenden')===stage));
  const lastTimes=new Map(state.attempts.map(a=>[a.taskId,a.time]));
  return [...pool].sort((a,b)=>(lastTimes.get(a.id)??0)-(lastTimes.get(b.id)??0)||a.id.localeCompare(b.id)).slice(0,count);
 }

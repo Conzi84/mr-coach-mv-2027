@@ -1,6 +1,7 @@
+import {depthTasks} from './depth.js';
 import {extraTopics,extraTasks} from './extra-content.js';
 // Own tasks. Subskills and learning order are derived, not an official exhaustive list.
-export const curriculum = {id:'MV-MR-2027-MA-2019',year:2027,examDate:'2027-05-21',version:'0.2.0',sourceChecked:'2026-09-13'};
+export const curriculum = {id:'MV-MR-2027-MA-2019',year:2027,examDate:'2027-05-21',version:'0.3.0',sourceChecked:'2026-09-13'};
 export const sources = [
  {name:'Vorabhinweise Mittlere Reife 2027',url:'https://www.bildung-mv.de/export/sites/bildungsserver/.galleries/dokumente/pruefungen/Vorabhinweise_MR_2027.pdf',note:'Mathematik, S. 18–20: Struktur, Hilfsmittel, Schwerpunkte und Bewertung.'},
  {name:'Rahmenplan Mathematik · Regionale Schule / Gesamtschule',url:'https://www.bildung-mv.de/export/sites/bildungsserver/.galleries/dokumente/unterricht/rahmenplaene/RP_MA_MR_7-10.pdf',note:'Plan 2019. Die vollständige Zuordnung aller Einzelkompetenzen ist noch in Arbeit.'},
@@ -57,7 +58,7 @@ const transferById = {
  'MAT-STO-05-004':'Bei einer Tombola gibt es 5 Lose: 2 Gewinnlose und 3 Nieten. Du ziehst zwei Lose, ohne ein Los zurückzugeben. Wie wahrscheinlich sind zwei Gewinne?'
 };
 for (const [id,prompt] of Object.entries(transferById)) tasks.find(t=>t.id===id).prompt=prompt;
-tasks.push(...extraTasks);
+tasks.push(...extraTasks,...depthTasks);
 export const trainingTasks=tasks;
 // Separate numbers and scenarios: seeing training solutions cannot reveal diagnostic answers.
 export const diagnosticTasks=[

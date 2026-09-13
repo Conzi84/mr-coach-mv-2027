@@ -1,0 +1,11 @@
+dist/
+node_modules/
+.netlify/
+.env
+.env.*
+!.env.example
+*.log
+05_LERNSTAND/*
+!05_LERNSTAND/VORLAGE.md
+*lernstand*.json
+work/

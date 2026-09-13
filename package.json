@@ -1,0 +1,14 @@
+{
+  "name": "mr-coach-mv-2027",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "start": "node scripts/build.mjs && node scripts/serve.mjs",
+    "test": "node --test",
+    "build": "node scripts/build.mjs",
+    "check": "npm run test && npm run build"
+  }
+}
+

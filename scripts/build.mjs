@@ -1,0 +1,10 @@
+import { cp, mkdir, readFile, writeFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
+await mkdir('dist', {recursive:true});
+await cp('app', 'dist', {recursive:true});
+const files = ['index.html','styles.css','app.js','engine.js','content.js','manifest.webmanifest','icon.svg','icon-192.png','icon-512.png'];
+const buffers = await Promise.all(files.map(f => readFile('app/' + f)));
+const hash = createHash('sha256');buffers.forEach(b => hash.update(b));
+const sw = (await readFile('app/sw.js','utf8')).replace('DEV_VERSION', hash.digest('hex').slice(0,16));
+await writeFile('dist/sw.js', sw);
+process.stdout.write('Statischer Netlify-Build erstellt.\n');

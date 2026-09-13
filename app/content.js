@@ -1,5 +1,6 @@
+import {extraTopics,extraTasks} from './extra-content.js';
 // Own tasks. Subskills and learning order are derived, not an official exhaustive list.
-export const curriculum = {id:'MV-MR-2027-MA-2019',year:2027,examDate:'2027-05-21',version:'0.1.0',sourceChecked:'2026-09-13'};
+export const curriculum = {id:'MV-MR-2027-MA-2019',year:2027,examDate:'2027-05-21',version:'0.2.0',sourceChecked:'2026-09-13'};
 export const sources = [
  {name:'Vorabhinweise Mittlere Reife 2027',url:'https://www.bildung-mv.de/export/sites/bildungsserver/.galleries/dokumente/pruefungen/Vorabhinweise_MR_2027.pdf',note:'Mathematik, S. 18–20: Struktur, Hilfsmittel, Schwerpunkte und Bewertung.'},
  {name:'Rahmenplan Mathematik · Regionale Schule / Gesamtschule',url:'https://www.bildung-mv.de/export/sites/bildungsserver/.galleries/dokumente/unterricht/rahmenplaene/RP_MA_MR_7-10.pdf',note:'Plan 2019. Die vollständige Zuordnung aller Einzelkompetenzen ist noch in Arbeit.'},
@@ -18,6 +19,7 @@ export const topics = [
  {id:'MAT-STO-03',title:'Einfache Wahrscheinlichkeiten',area:'Stochastik',prerequisites:['MAT-BAS-01'],rule:'P = günstige / mögliche Ergebnisse',explanation:'Diese Zählregel gilt, wenn alle Einzelergebnisse gleich wahrscheinlich sind. Zähle sorgfältig. Bei einem Gegenereignis ziehst du die Wahrscheinlichkeit des Ereignisses von 1 ab.',example:'Fairer Würfel, Zahl größer als 4:\nP = 2/6 = 1/3',role:'Pflichtschwerpunkt'},
  {id:'MAT-STO-05',title:'Ziehen ohne Zurücklegen',area:'Stochastik',prerequisites:['MAT-STO-03'],rule:'Wahrscheinlichkeiten entlang des Pfads multiplizieren.',explanation:'Nach dem ersten Zug liegt eine Kugel weniger im Beutel. Hat der erste Zug die gewünschte Farbe, gibt es auch eine passende Kugel weniger. Passe Zähler und Nenner für den zweiten Zug an.',example:'3 rote, 2 blaue Kugeln; zweimal rot:\nP = 3/5·2/4 = 3/10',role:'Pflichtschwerpunkt'}
 ];
+topics.push(...extraTopics);
 const tasks=[];
 const num=(key,label,expected,unit='',tolerance=0.000001)=>({key,label,expected,unit,tolerance});
 function task(topic,seq,prompt,fields,hints,steps,error,tools=false){
@@ -55,6 +57,7 @@ const transferById = {
  'MAT-STO-05-004':'Bei einer Tombola gibt es 5 Lose: 2 Gewinnlose und 3 Nieten. Du ziehst zwei Lose, ohne ein Los zurückzugeben. Wie wahrscheinlich sind zwei Gewinne?'
 };
 for (const [id,prompt] of Object.entries(transferById)) tasks.find(t=>t.id===id).prompt=prompt;
+tasks.push(...extraTasks);
 export const trainingTasks=tasks;
 // Separate numbers and scenarios: seeing training solutions cannot reveal diagnostic answers.
 export const diagnosticTasks=[

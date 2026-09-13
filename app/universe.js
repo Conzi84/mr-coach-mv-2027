@@ -1,0 +1,30 @@
+import {topics,trainingTasks} from './content.js';
+import {topicStats,independent,recommend} from './engine.js';
+const escape=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+export const plannedAreas=[
+ {area:'Grundlagen',title:'Potenzen, Wurzeln & Termumformung'},
+ {area:'Funktionen',title:'Einheitskreis, Sinuswerte & Intervalllösungen'},
+ {area:'Funktionen',title:'Quadratische Nullstellen & weitere Funktionstypen'},
+ {area:'Stochastik',title:'Baumdiagramme, Pfadregeln & Dateninterpretation'},
+ {area:'Geometrie',title:'Körper, Oberfläche & Volumen'},
+ {area:'Geometrie',title:'Kosinus, Tangens, Sinus- & Kosinussatz'},
+ {area:'Prüfungspraxis',title:'Planfiguren, Begründungen & lange Papieraufgaben'}
+];
+export function evidence(state,id){
+ const attempts=state.attempts.filter(a=>a.topic===id);
+ const correct=attempts.filter(independent);
+ const application=correct.filter(a=>trainingTasks.find(t=>t.id===a.taskId)?.transfer);
+ return {calculation:correct.length,application:application.length,support:attempts.filter(a=>a.outcome==='correct'&&!independent(a)).length};
+}
+export function universeHTML(state,selectedId){
+ const selected=topics.find(t=>t.id===selectedId)||recommend(state).topic;
+ const areas=[...new Set([...topics.map(t=>t.area),...plannedAreas.map(t=>t.area)])];
+ const s=topicStats(state,selected.id),proof=evidence(state,selected.id);
+ return `<div class="universe-mobile-note" role="note"><strong>Die große Übersicht schaust du dir besser auf dem Desktop an.</strong> Auf dem Smartphone kannst du trotzdem jedes Thema auswählen und direkt üben.</div>
+ <section class="universe-intro"><h2>Dein Wissensuniversum</h2><p>Themeninseln zeigen, was zusammengehört. Wähle einen Knoten: Er zeigt dir eine Erklärung, hilfreiche Grundlagen und deinen nächsten Versuch.</p><p class="small muted">${topics.length} trainierbare Teilbereiche · ${trainingTasks.length} eigene Trainingsaufgaben. Geplante Knoten sind sichtbar, aber noch nicht trainierbar. Keine vollständige Curriculumkarte.</p></section>
+ <div class="universe-map" aria-label="Themeninseln">${areas.map(area=>`<section class="universe-island"><h3>${escape(area)}</h3><div class="universe-nodes">${topics.filter(t=>t.area===area).map(t=>{const stats=topicStats(state,t.id);return `<button class="universe-node ${selected.id===t.id?'selected':''}" aria-pressed="${selected.id===t.id}" data-action="universe:${escape(t.id)}"><span>${escape(t.title)}</span><small>${escape(stats.status==='Unbekannt'?'Noch nicht geprüft':stats.status)}</small></button>`;}).join('')}${plannedAreas.filter(t=>t.area===area).map(t=>`<div class="universe-planned"><span>${escape(t.title)}</span><small>Noch kein Training verfügbar</small></div>`).join('')}</div></section>`).join('')}</div>
+ <section class="card universe-detail" id="universe-detail" aria-live="polite"><div class="eyebrow">DEIN AUSGEWÄHLTES THEMA · ${escape(selected.area)}</div><h2>${escape(selected.title)}</h2><p>${escape(selected.role)} · ${escape(s.status==='Unbekannt'?'Noch nicht geprüft':s.status)}</p><div class="rule-box">${escape(selected.rule)}</div><p class="section-title">${escape(selected.explanation)}</p><details><summary>Ein Beispiel nachvollziehen</summary><p class="preline">${escape(selected.example)}</p><p class="small muted">Erkläre den Ansatz in eigenen Worten. Das Ansehen wird nicht als selbstständiger Erfolg gezählt.</p></details><h3 class="section-title">Diese Grundlagen helfen dir</h3><div class="actions">${selected.prerequisites.length?selected.prerequisites.map(id=>{const t=topics.find(t=>t.id===id);return `<button class="btn" data-action="universe:${escape(id)}">${escape(t.title)} →</button>`;}).join(''):'<p>Für diesen Einstieg ist kein anderes App-Thema vorausgesetzt.</p>'}</div><h3 class="section-title">Deine bisherigen Nachweise</h3><p>${proof.calculation} richtige Erstversuche ohne Hilfe · ${proof.support} mit Unterstützung gelungen · ${proof.application} selbstständige Ergebnisse in Sachaufgaben.</p><p class="small muted">Die App prüft Endergebnisse. Erklärungen, Zeichnungen und Lösungswege sind dadurch noch nicht belegt. „Wiederholung fällig“ ist ein Termin, keine Aussage, dass du das Thema verlernt hast.</p><div class="actions"><button class="btn primary" data-action="learn:${escape(selected.id)}">Dieses Thema üben</button><a class="btn" href="#matrix">Alle Nachweise ansehen</a></div></section>`;
+}
+export function matrixHTML(state){
+ return `<p class="muted">Was ist durch Aufgaben belegt? Klappe ein Thema auf. Es gibt keine Gesamtnote und keinen pauschalen Prüfungsfortschritt.</p><div class="matrix-list">${topics.map(t=>{const p=evidence(state,t.id),s=topicStats(state,t.id);return `<details class="card matrix-topic"><summary><strong>${escape(t.title)}</strong><span>${escape(s.status==='Unbekannt'?'Noch nicht geprüft':s.status)}</span></summary><dl class="matrix-evidence"><dt>Rechenergebnisse</dt><dd>${p.calculation?p.calculation+' richtige Erstversuche ohne Hilfe':'Noch kein selbstständiger Erfolg belegt'}</dd><dt>Sachaufgaben</dt><dd>${p.application?p.application+' selbstständige Ergebnisse':'Noch nicht selbstständig belegt'}</dd><dt>Erklären & Begründen</dt><dd>Noch nicht durch die App geprüft</dd><dt>Graphen & Zeichnungen</dt><dd>Noch nicht durch die App geprüft</dd><dt>Nach mehreren Tagen</dt><dd>${s.secure?'Verschiedene Aufgaben und Sachaufgabe an mehreren Tagen; vorläufig gefestigt':'Noch kein ausreichender Nachweis'}</dd></dl><p class="small muted">${s.tries} Versuche insgesamt · ${p.support} mit Unterstützung gelungen. Endergebnisse ersetzen keine Prüfung des Papierwegs.</p><div class="actions"><button class="btn" data-action="universe:${escape(t.id)}">Im Universum ansehen</button><button class="btn primary" data-action="learn:${escape(t.id)}">Üben</button></div></details>`;}).join('')}</div>`;
+}
